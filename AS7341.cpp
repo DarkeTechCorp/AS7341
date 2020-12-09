@@ -164,6 +164,7 @@ void AS7341::FlickerRead(FD_STATUS *fd_status) {
   fd_status->FD_VALID = ((flicker_value >> 5) & 1) == 1; //Indicates that flicker detection measurement is complete. Write 1 to this bit to clear this field.
 }
 
+/*
 void AS7341::ErrorStatus(Error * err) {
   byte status = readRegister(byte(0xA7));
   err->INT_BUSY = ((status >> 0) & 1) == 1; //Indicates that the device is initializing. This bit will remain 1 for about 300μs after power on. Do not interact with the device until initialization is complete.
@@ -173,7 +174,7 @@ void AS7341::ErrorStatus(Error * err) {
   err->OVTEMP = ((status >> 5) & 1) == 1; //Over Temperature Detected. Indicates the device temperature is too high. Write 1 to clear this bit
   err->FIFO_OV = ((status >> 7) & 1) == 1; //Indicates that the FIFO buffer overflowed and information has been lost. Bit is automatically cleared when the FIFO buffer is read
 }
-
+*/
 
 /* ----- Read/Write to i2c register ----- */
 
@@ -549,6 +550,7 @@ void AS7341::setGAIN(byte value)
   writeRegister(byte (0xAA), value);
 }
 
+/*
 void AS7341::ReadStatus(STATUS * sts){
   byte status = readRegister(byte(0x93));
   sts->ASAT = ((status >> 7) & 1) == 1; //Spectral and  Flicker Detect saturation. If ASIEN is set, indicates Spectral saturation. Check STATUS2 register to distinguish between analog or digital saturation.
@@ -562,7 +564,7 @@ void AS7341::ReadStatus(STATUS * sts){
   sts->FDSAT_A = ((status2 >> 1) & 1) == 1; //Flicker detect analog saturation. Indicates that the intensity of ambient light has exceeded the maximum integration level for the analog circuit for flicker detection
   sts->FDSAT_D = ((status2 >> 0) & 1) == 1; //Flicker detect digital saturation. Indicates that the maximum counter value has been reached during flicker detection.
 }
-
+*/
 
 //<summary>
 // Reads Revision identification number in 0x91

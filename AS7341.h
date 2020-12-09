@@ -20,18 +20,6 @@ struct Channels {
 
 };
 
-struct STATUS {
-  bool ASAT = false;
-  bool AINT = false;
-  bool FINT = false;
-  bool C_INT = false;
-  bool AVALID = false;
-  bool ASAT_D = false;
-  bool ASAT_A = false;
-  bool FDSAT_A = false;
-  bool FDSAT_D = false;
-};
-
 struct FD_STATUS {
   bool FD_VALID = false;
   bool FD_SAT = false;
@@ -41,19 +29,9 @@ struct FD_STATUS {
   bool FD_100HZ = false;
 };
 
-struct Error {
-  bool FIFO_OV = false;
-  bool OVTEMP = false;
-  bool FD_TRIG = false;
-  bool SP_TRIG = false;
-  bool SAI_ACTIVE = false;
-  bool INT_BUSY = false;
-};
-
 
 class AS7341 {
   public:
-
     void begin();
     void PowerOn();
     void ReadLight(Channels * channels);
@@ -61,12 +39,10 @@ class AS7341 {
     bool SatStatus();
     byte GainStatus();
     void FlickerRead(FD_STATUS *fd_status);
-    void ErrorStatus(Error * err);
     void setGAIN(byte value);
     void ReadStatus();
 
   private:
-
     byte readRegister(byte addr);
     uint16_t readTwoRegister1(byte addr);
     void writeRegister(byte addr, byte val);
@@ -84,8 +60,6 @@ class AS7341 {
     void setASTEP(byte value1, byte value2);
     void readREVID();
     void readAUXID();
-    
-
 };
 
 #endif
