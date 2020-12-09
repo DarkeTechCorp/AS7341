@@ -165,7 +165,7 @@ void AS7341::FlickerRead(FD_STATUS *fd_status) {
 }
 
 void AS7341::ErrorStatus(Error * err) {
-  byte status = readRegister(byte(0xDB));
+  byte status = readRegister(byte(0xA7));
   err->INT_BUSY = ((status >> 0) & 1) == 1;
   err->SAI_ACTIVE = ((status >> 1) & 1) == 1;
   err->SP_TRIG = ((status >> 2) & 1) == 1;
