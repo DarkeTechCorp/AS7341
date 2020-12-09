@@ -144,34 +144,34 @@ void AS7341::FlickerDetection(bool enable) {
 
 bool AS7341::SatStatus() {
   byte status = readRegister(byte(0x60));
-  return (bool)((status >> 7) & 1);
+  return (bool)((status >> 7) & 1); //Saturation Status. Indicates if the latched data is affected by analog or digital saturation
 }
 
 byte AS7341::GainStatus() {
   byte status = readRegister(byte(0x60));
-  return (status & 15);
+  return (status & 15); //Gain Status. Indicates the gain applied for the spectral data latched to this ASTATUS read. The gain from this status read is required to calculate spectral results if AGC is enabled.
 }
 
 void AS7341::FlickerRead(FD_STATUS *fd_status) {
   // reading the flicker status in FD_STATUS register 0xDB
   byte flicker_value = readRegister(byte(0xDB));
 
-  fd_status->FD_100HZ = ((flicker_value >> 0) & 1) == 1;
-  fd_status->FD_120HZ = ((flicker_value >> 1) & 1) == 1;
-  fd_status->FD_100HZ_VALID = ((flicker_value >> 2) & 1) == 1;
-  fd_status->FD_120HZ_VALID = ((flicker_value >> 3) & 1) == 1;
-  fd_status->FD_SAT = ((flicker_value >> 4) & 1) == 1;
-  fd_status->FD_VALID = ((flicker_value >> 5) & 1) == 1;
+  fd_status->FD_100HZ = ((flicker_value >> 0) & 1) == 1; //Indicates if an ambient light source is flickering at 100Hz.
+  fd_status->FD_120HZ = ((flicker_value >> 1) & 1) == 1; //Indicates if an ambient light source is flickering at 120Hz.
+  fd_status->FD_100HZ_VALID = ((flicker_value >> 2) & 1) == 1; //Indicates that the 100Hz flicker detection calculation is valid. Write 1 to this bit to clear this field.
+  fd_status->FD_120HZ_VALID = ((flicker_value >> 3) & 1) == 1; //Indicates that the 120Hz flicker detection calculation is valid. Write 1 to this bit to clear this field.
+  fd_status->FD_SAT = ((flicker_value >> 4) & 1) == 1; //Indicates that saturation occurred during the last flicker detection measurement, and the result may not be valid. Write 1 to this bit to clear this field.
+  fd_status->FD_VALID = ((flicker_value >> 5) & 1) == 1; //Indicates that flicker detection measurement is complete. Write 1 to this bit to clear this field.
 }
 
 void AS7341::ErrorStatus(Error * err) {
   byte status = readRegister(byte(0xA7));
-  err->INT_BUSY = ((status >> 0) & 1) == 1;
-  err->SAI_ACTIVE = ((status >> 1) & 1) == 1;
-  err->SP_TRIG = ((status >> 2) & 1) == 1;
-  err->FD_TRIG = ((status >> 4) & 1) == 1;
-  err->OVTEMP = ((status >> 5) & 1) == 1;
-  err->FIFO_OV = ((status >> 7) & 1) == 1;
+  err->INT_BUSY = ((status >> 0) & 1) == 1; //Indicates that the device is initializing. This bit will remain 1 for about 300μs after power on. Do not interact with the device until initialization is complete.
+  err->SAI_ACTIVE = ((status >> 1) & 1) == 1; //Sleep after Interrupt Active. Indicates that the device is in SLEEP due to an interrupt. To exit SLEEP mode, clear this bit.
+  err->SP_TRIG = ((status >> 2) & 1) == 1; //Spectral Trigger Error. Indicates that there is a timing error. The WTIME is too short for the selected ATIME.
+  err->FD_TRIG = ((status >> 4) & 1) == 1; //Flicker Detect Trigger Error. Indicates that there is a timing error that prevents flicker detect from working correctly.
+  err->OVTEMP = ((status >> 5) & 1) == 1; //Over Temperature Detected. Indicates the device temperature is too high. Write 1 to clear this bit
+  err->FIFO_OV = ((status >> 7) & 1) == 1; //Indicates that the FIFO buffer overflowed and information has been lost. Bit is automatically cleared when the FIFO buffer is read
 }
 
 
@@ -530,10 +530,37 @@ void AS7341::setASTEP(byte value1, byte value2)
 // Sets the Spectral Gain in CFG1 Register (0xAA) in [4:0] bit
 //<summary>
 // param name = "value"> integer value from 0 to 10 written to AGAIN register 0xAA
-
+/*
+VALUE GAIN
+0 0.5x
+1 1x
+2 2x
+3 4x
+4 8x
+5 16x
+6 32x
+7 64x
+8 128x
+9 256x  --> default
+10 512x
+*/
 void AS7341::setGAIN(byte value)
 {
   writeRegister(byte (0xAA), value);
+}
+
+void AS7341::ReadStatus(STATUS * sts){
+  byte status = readRegister(byte(0x93));
+  sts->ASAT = ((status >> 7) & 1) == 1; //Spectral and  Flicker Detect saturation. If ASIEN is set, indicates Spectral saturation. Check STATUS2 register to distinguish between analog or digital saturation.
+  sts->AINT = ((status >> 3) & 1) == 1;  //Spectral Channel Interrupt. If SP_IEN is set, indicates that a spectral event that met the programmed thresholds and persistence (APERS) occurred.
+  sts->FINT = ((status >> 2) & 1) == 1; //FIFO Buffer Interrupt. If FIEN is set, indicates that the FIFO_LVL fulfills the threshold condition. If cleared by writing 1, the interrupt will be asserted again as more data is collected. To fully clear this interrupt, all data must be read from the FIFO buffer.
+  sts->C_INT = ((status >> 1) & 1) == 1; //Calibration Interrupt.
+  byte status2 = readRegister(byte(0xA3));
+  sts->AVALID = ((status2 >> 6) & 1) == 1; //Indicates that the spectral measurement has been completed
+  sts->ASAT_A = ((status2 >> 3) & 1) == 1; //Analog saturation. Indicates that the intensity of ambient light has exceeded the maximum integration level for the spectral analog circuit.
+  sts->ASAT_D = ((status2 >> 4) & 1) == 1; //Digital saturation. Indicates that the maximum counter value has been reached. Maximum counter value depends on integration time set in the ATIME register.
+  sts->FDSAT_A = ((status2 >> 1) & 1) == 1; //Flicker detect analog saturation. Indicates that the intensity of ambient light has exceeded the maximum integration level for the analog circuit for flicker detection
+  sts->FDSAT_D = ((status2 >> 0) & 1) == 1; //Flicker detect digital saturation. Indicates that the maximum counter value has been reached during flicker detection.
 }
 
 
@@ -548,9 +575,9 @@ void AS7341::readREVID()
 
 
 //<summary>
-// Reads Auxiliary identification number in 0x93
+// Reads Auxiliary identification number in 0x90
 //<summary>
 void AS7341::readAUXID()
 {
-  readRegister(byte(0x93));
+  readRegister(byte(0x90));
 }

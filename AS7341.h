@@ -20,6 +20,18 @@ struct Channels {
 
 };
 
+struct STATUS {
+  bool ASAT = false;
+  bool AINT = false;
+  bool FINT = false;
+  bool C_INT = false;
+  bool AVALID = false;
+  bool ASAT_D = false;
+  bool ASAT_A = false;
+  bool FDSAT_A = false;
+  bool FDSAT_D = false;
+};
+
 struct FD_STATUS {
   bool FD_VALID = false;
   bool FD_SAT = false;
@@ -51,6 +63,7 @@ class AS7341 {
     void FlickerRead(FD_STATUS *fd_status);
     void ErrorStatus(Error * err);
     void setGAIN(byte value);
+    void ReadStatus();
 
   private:
 
