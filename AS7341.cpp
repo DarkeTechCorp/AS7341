@@ -143,12 +143,13 @@ void AS7341::FlickerDetection(bool enable) {
 }
 
 bool AS7341::SatStatus() {
-  byte status = readRegister(byte(0x60));
-  return (bool)((status >> 7) & 1); //Saturation Status. Indicates if the latched data is affected by analog or digital saturation
+  byte status = readRegister(byte(0x94));
+  return (bool)((status >> 7) & 1); //Spectral and Flicker Detect saturation. If ASIEN is set, indicates Spectral saturation. Check STATUS2 register to distinguish between analog or digital saturation.
+
 }
 
 byte AS7341::GainStatus() {
-  byte status = readRegister(byte(0x60));
+  byte status = readRegister(byte(0x94));
   return (status & 15); //Gain Status. Indicates the gain applied for the spectral data latched to this ASTATUS read. The gain from this status read is required to calculate spectral results if AGC is enabled.
 }
 
@@ -250,12 +251,7 @@ void AS7341::writeRegister(byte addr, byte val)
   Wire.endTransmission();
 }
 
-
-
 /*----- Register configuration  -----*/
-
-
-
 
 // <summary>
 // Setting the PON (Power on) bit on the chip (bit0 at register ENABLE 0x80)
@@ -272,7 +268,6 @@ void AS7341::PON()
   writeRegister(byte (0x80), byte (regVal));
 
 }
-
 
 // <summary>
 // Write SMUX configration from RAM to set SMUX chain in CFG6 register 0xAF
@@ -397,8 +392,6 @@ bool AS7341::getFdMeasReady()
   }
 }
 
-
-
 /*----- SMUX Configuration for F1,F2,F3,F4,CLEAR,NIR -----*/
 
 //<summary>
@@ -429,7 +422,6 @@ void AS7341::F1F4_Clear_NIR()
   writeRegister(byte (0x12), byte (0x00)); // Reserved or disabled
   writeRegister(byte (0x13), byte (0x06)); // NIR connected to ADC5
 }
-
 
 /*----- SMUX Configuration for F5,F6,F7,F8,CLEAR,NIR -----*/
 
