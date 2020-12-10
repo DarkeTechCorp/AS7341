@@ -41,6 +41,7 @@ class AS7341 {
     void FlickerRead(FD_STATUS *fd_status);
     void setGAIN(byte value);
     void ReadStatus();
+    void AutoGain();
 
   private:
     byte readRegister(byte addr);

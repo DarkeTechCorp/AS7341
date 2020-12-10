@@ -153,6 +153,15 @@ byte AS7341::GainStatus() {
   return (status & 15); //Gain Status. Indicates the gain applied for the spectral data latched to this ASTATUS read. The gain from this status read is required to calculate spectral results if AGC is enabled.
 }
 
+void AS7341::AutoGain() {
+  //enables the AGC AutoGainControl feature
+  //0xB1:2 
+  byte regVal = readRegister(byte(0xB1));
+  regVal = regVal & 0xFB;
+  regVal = regVal | 0x04;
+  writeRegister(byte (0xB1), byte (regVal));
+}
+
 void AS7341::FlickerRead(FD_STATUS *fd_status) {
   // reading the flicker status in FD_STATUS register 0xDB
   byte flicker_value = readRegister(byte(0xDB));
@@ -292,7 +301,6 @@ void AS7341::SpEn(bool isEnable)
   byte regVal = readRegister(byte(0x80));
   byte temp = regVal;
   regVal = regVal & 0xFD;
-
   if (isEnable == true)
   {
     regVal = regVal | 0x02;
@@ -301,7 +309,6 @@ void AS7341::SpEn(bool isEnable)
   {
     regVal = temp & 0xFD;
   }
-
   writeRegister(byte (0x80), byte (regVal));
 
 }
